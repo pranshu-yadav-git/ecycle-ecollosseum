@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { auth } from '../lib/firebase';
 
 interface User {
@@ -32,6 +33,15 @@ export default function RootLayout() {
   const [isDark, setIsDark] = useState(true);
   const [isNavbarVisible, setNavbarVisible] = useState(true);
   const router = useRouter();
+  const segments = useSegments();
+
+  useEffect(() => {
+    const loadTheme = async () => {
+      const storedTheme = await AsyncStorage.getItem('theme');
+      if (storedTheme) setIsDark(storedTheme === 'dark');
+    };
+    loadTheme();
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -53,21 +63,25 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    const loadTheme = async () => {
-      const storedTheme = await AsyncStorage.getItem('theme');
-      if (storedTheme) setIsDark(storedTheme === 'dark');
-    };
-    loadTheme();
-  }, []);
+    if (loading) return;
+
+    const inAuthGroup = segments[0] === 'auth';
+
+    if (!user && !inAuthGroup) {
+      router.replace('/auth');
+    } else if (user && inAuthGroup) {
+      router.replace('/(tabs)');
+    }
+  }, [user, loading, segments]);
 
   const logout = async () => {
     try {
       await signOut(auth);
-      setUser(null); // Force state change[cite: 12]
+      setUser(null);
       await AsyncStorage.removeItem('user');
-      router.replace('/auth'); // Manual redirect backup[cite: 4]
+      router.replace('/auth');
     } catch (error) {
-      console.error("Logout error", error);
+      console.error('Logout error', error);
     }
   };
 
@@ -79,34 +93,34 @@ export default function RootLayout() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: isDark ? '#000' : '#fff' }}>
-        <ActivityIndicator size="large" color="#2ecc71" />
-      </View>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: isDark ? '#000' : '#fff' }}>
+          <ActivityIndicator size="large" color="#2ecc71" />
+        </View>
+      </GestureHandlerRootView>
     );
   }
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        setUser,
-        loading,
-        isDark,
-        setIsDark,
-        isNavbarVisible,
-        setNavbarVisible,
-        logout,
-        toggleTheme,
-      }}
-    >
-      {/* The key prop forces the Stack to re-render when auth state changes[cite: 3, 7] */}
-      <Stack key={user ? 'auth' : 'guest'} screenOptions={{ headerShown: false }}>
-        {!user ? (
-          <Stack.Screen name="auth" options={{ animation: 'fade', gestureEnabled: false }} /> 
-        ) : (
-          <Stack.Screen name="(tabs)" options={{ animation: 'fade', gestureEnabled: false }} /> 
-        )}
-      </Stack>
-    </AuthContext.Provider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthContext.Provider
+        value={{
+          user,
+          setUser,
+          loading,
+          isDark,
+          setIsDark,
+          isNavbarVisible,
+          setNavbarVisible,
+          logout,
+          toggleTheme,
+        }}
+      >
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="auth" options={{ animation: 'fade', gestureEnabled: false }} />
+          <Stack.Screen name="(tabs)" options={{ animation: 'fade', gestureEnabled: false }} />
+        </Stack>
+      </AuthContext.Provider>
+    </GestureHandlerRootView>
   );
 }
