@@ -1,17 +1,16 @@
 {
   "expo": {
-    "name": "ewaste",
+    "name": "E-Cycle",
     "slug": "ewaste",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "ewaste",
+    "scheme": "eyy-cycle",
     "androidStatusBar": {
       "translucent": true,
-      "backgroundColor": "transparent"
+      "backgroundColor": "#00000000"
     },
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
@@ -22,9 +21,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.ewaste"
+      "package": "com.ecycle"
     },
     "web": {
       "output": "static",
