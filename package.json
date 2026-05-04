@@ -38,7 +38,7 @@
     "expo-symbols": "~55.0.7",
     "expo-system-ui": "~55.0.16",
     "expo-web-browser": "~55.0.14",
-    "firebase": "^11.10.0",
+    "firebase": "^12.12.1",
     "react": "19.2.0",
     "react-bootstrap": "^2.10.10",
     "react-dom": "19.2.0",
